@@ -1,0 +1,243 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Calibri;}{\f1\fnil\fcharset238 Calibri;}{\f2\fnil\fcharset0 Cascadia Code;}{\f3\fnil\fcharset238 Cascadia Code;}{\f4\fnil Cascadia Mono;}}
+{\colortbl ;\red0\green0\blue0;}
+{\*\generator Riched20 10.0.22621}\viewkind4\uc1 
+\pard\sa200\sl276\slmult1\f0\fs22\lang9\par
+\par
+
+\pard 
+{\pntext\f0 1.\tab}{\*\pn\pnlvlbody\pnf0\pnindent0\pnstart1\pndec{\pntxta.}}
+\fi-360\li720\sa200\sl276\slmult1\b\fs28 Pentru a evidentia principiul SRP \b0 : am creat o clasa separata OrderProcessor, care se va ocupa exclusiv de procesarea comenzilor. Metoda ProcessOrder prime\f1\u537?te un \u537?ir JSON care reprezint\'e3 o comand\'e3 \u537?i returneaz\'e3 pre\u539?ul final calculat pentru acea comand\'e3.\f0\lang1033  \f1\lang9 Apoi, \f0\'een func\f1\u539?ie de tipul comenzii (OrderType), se apeleaz\'e3 una dintre metodele private: ProcessRoomOrder, ProcessProductOrder sau ProcessBreakfastOrder.\f0\lang1033  \f1\lang9 Fiecare dintre aceste metode private se ocup\'e3 de procesarea \u537?i validarea comenzii de tipul respectiv\f0\fs22\lang1033 . \fs28\'cen final\f1 , pre\u539?ul final calculat este returnat.\f0\lang9\par
+
+\pard\sa200\sl276\slmult1\fs22\lang1033 //cod:\i\par
+\f2\fs18 namespace Tema2Console\par
+\{\par
+    public class OrderProcessor\par
+    \{\par
+        public decimal ProcessOrder(string orderData)\par
+        \{\par
+            Console.WriteLine("Start processing...");\par
+\par
+            Console.WriteLine("Deserializing Order object from json data...");\par
+            var order = JsonConvert.DeserializeObject<Order>(orderData, new StringEnumConverter());\par
+\par
+            if (order == null)\par
+            \{\par
+                Console.WriteLine("Order type not parsed successfully.");\par
+                return 0; \f3             \}\par
+\par
+            decimal finalPrice = 0;\par
+\par
+            switch (order.Type)\par
+            \{\par
+                case OrderType.Room:\par
+                    finalPrice = ProcessRoomOrder(order);\par
+                    break;\par
+                case OrderType.Product:\par
+                    finalPrice = ProcessProductOrder(order);\par
+                    break;\par
+                case OrderType.Breakfast:\par
+                    finalPrice = ProcessBreakfastOrder(order);\par
+                    break;\par
+                default:\par
+                    Console.WriteLine("Unknown order type.");\par
+                    break;\par
+            \}\par
+\par
+            Console.WriteLine("Rating completed.");\par
+            return finalPrice;\par
+        \f2\}\f3\par
+        private decimal ProcessRoomOrder(Order order)\par
+        \{\par
+            Console.WriteLine("Processing Room order...");\par
+            return 0; \par
+        \}\par
+\par
+        private decimal ProcessProductOrder(Order order)\par
+        \{\par
+            Console.WriteLine("Processing Product order...");\par
+            return 0; \par
+        \}\par
+\par
+        private decimal ProcessBreakfastOrder(Order order)\par
+        \{\par
+            Console.WriteLine("Processing Breakfast order...")\f2 ;\f3\par
+            return 0; \par
+        \}\par
+    \}\par
+\}\par
+\i0\f1\fs22\par
+\f0\lang9\par
+\par
+\par
+\fs28 2\b\fs22 . \fs28 Pentru a eviden\f1\u539?ia principiul Open/Closed\f0\lang1033  Principle\f1\lang9  (OCP)\b0\f0\lang1033 : Am creat o interfata care va fi utilizata pentru procesarea diferitelor tipuri de comenzi. Aceasta define\f1\u537?te o metod\'e3 ProcessOrder, care prime\u537?te un obiect de tip Order \u537?i returneaz\'e3 un decimal, \f0 care reprezinta pre\f1\u539?ul final al comenzii\f0 .\par
+\fs22\par
+//cod:\par
+\cf1\i\f2\fs20 using System;\par
+using System.Collections.Generic;\par
+using System.Linq;\par
+using System.Text;\par
+using System.Threading.Tasks;\par
+\par
+namespace Tema2Console\par
+\{\par
+    public interface IOrderProcessor\par
+    \{\par
+        decimal ProcessOrder(Order order);\par
+    \}\par
+\}\par
+\f4\fs19\par
+\i0\f0\fs28 Metoda ProcessOrder prime\f1\u537?te acum un obiect de tip IOrderProcessor, care \f0 adica\f1  un procesor de comenzi. \par
+Aceast\'e3 modificare permite OrderProcessor s\'e3 utilizeze orice implementare a interfe\u539?ei IOrderProcessor\f0 . \'cen loc s\f1\'e3 gestioneze direct procesarea comenzilor, OrderProcessor \f0 transmite\f1  aceast\'e3 responsabilitate procesorului de comenzi primit ca parametru.\par
+Cu aceste modific\'e3ri, OrderProcessor respect\'e3 acum principiul Open/Closed (OCP), deoarece este deschis pentru extensi\f0 i\f1  (\f0 pot sa adaug \f1 noi implement\'e3ri ale interfe\u539?ei IOrderProcessor pentru a procesa \f0 alte comenzi\f1 ), dar \f0\'eenchis pentru modificari (nu trebuie s\f1\'e3 modific OrderProcessor pentru a ad\'e3uga \f0 alte comenzi).\par
+\par
+//cod:\par
+\f4\fs19\par
+\i\f2 namespace Tema2Console\par
+\{\par
+    public class OrderProcessor\par
+    \{\par
+        public decimal ProcessOrder(IOrderProcessor orderProcessor, string orderData)\par
+        \{\par
+            Console.WriteLine("Start processing...");\par
+\par
+            Console.WriteLine("Deserializing Order object from json data...");\par
+            var order = JsonConvert.DeserializeObject<Order>(orderData, new StringEnumConverter());\par
+\par
+            if (order == null)\par
+            \{\par
+                Console.WriteLine("Order type not parsed successfully.");\par
+                return 0; \par
+            \}\par
+\par
+            decimal finalPrice = orderProcessor.ProcessOrder(order);\par
+\par
+            Console.WriteLine("Rating completed.");\par
+            return finalPrice;\par
+        \}\par
+    \}\par
+\}\fs28\par
+\i0\f4\fs19    \par
+\cf0\f0\fs28\lang9 3. \b Pentru a evidentia Liskov subtitution principle(LSP): \b0 Am mai creat o clasa DiscountedOrderProcessor (care se ocupa se procesarea comenzilor cu reduceri), iar acum aceasta si OrderProcessor (care ocup\f1\'e3 de procesarea comenzilor f\'e3r\'e3 reduceri\f0 ) vor mosteni IOrderProcessor.Principiul LSP este respectat aici, deoarece clasa DiscountedOrderProcessor poate fi utilizat\f1\'e3 \f0\'een locul clasei OrderProcessor f\f1\'e3r\'e3 a afecta programul\f0\lang1033 .\par
+//cod (OrderProcessor.cs)\par
+\cf1\f4\fs19\par
+\i\f2 namespace Tema2Console\par
+\{\par
+    public class OrderProcessor: IOrderProcessor\par
+    \{\par
+        public decimal ProcessOrder(Order order)\par
+        \{\par
+            Console.WriteLine("Start processing...");\par
+\par
+            decimal finalPrice = CalculateFinalPrice(order);\par
+\par
+            Console.WriteLine("Rating completed.");\par
+            return finalPrice;\par
+        \}\par
+\par
+        private decimal CalculateFinalPrice(Order order)\par
+        \{\par
+            decimal finalPrice = 0;\par
+\par
+            //  pre\f3\u539?ul final va fi doar pre\u539?ul comenzii.\par
+            finalPrice = order.Quantity * order.Price;\par
+\par
+            return finalPrice;\par
+        \}\par
+    \}\par
+\}\par
+\i0\f0\fs28 //cod( DiscountOrderProcessor.cs):\par
+\f4\fs19\par
+\i\f2 namespace Tema2Console\par
+\{\par
+    public class DiscountOrderProcessor: IOrderProcessor\par
+    \{\par
+        public decimal ProcessOrder(Order order)\par
+        \{\par
+            Console.WriteLine("Start processing with discount...");\par
+\par
+            decimal finalPrice = CalculateFinalPriceWithDiscount(order);\par
+\par
+            Console.WriteLine("Rating with discount completed.");\par
+            return finalPrice;\par
+        \}\par
+\par
+        private decimal CalculateFinalPriceWithDiscount(Order order)\par
+        \{\par
+            decimal finalPrice = 0;\par
+\par
+            // reducere de 10% pentru comenzile de tip camer\f3\'e3.\par
+            if (order.Type == OrderType.Room)\par
+            \{\par
+                finalPrice = (order.Quantity * order.Price) * 0.9m;\par
+            \}\par
+            else\par
+            \{\par
+                finalPrice = order.Quantity * order.Price; \par
+// pt celelalte tipuri de comenzi, pre\u539?ul final r\'e3m\f2\'e2ne neschimbat.\par
+            \}\par
+\par
+            return finalPrice;\par
+        \}\par
+    \}\par
+\}\par
+\par
+\i0\f0\fs28 4. \b Pentru a evidentia Interface Segregation Principle (ISP):\b0  Am creat  2 interfete mai mici, specializate- IStandardOrderProcessor (interfa\f1\u539?a specializat\'e3 pentru OrderProcessor)\f0  si IDiscountOrderProcessor (interfa\f1\u539?a specializat\'e3 pentru DiscountOrderProcessor)\f0 .- unde interfata generala este IOrderProcessor.\par
+Acum clasa OrderProcessor va mosteni IStandardOrderProcessor, in rest ramane la fel.\par
+Clasa  DiscountOrderProcessor va mosteni acum clasa IDiscountOrderProcessor. Apoi, am modificat \f1 codul \f0 din Program.cs \f1 pentru a utiliza aceste interfe\u539?e specializate \f0\'een locul interfe\f1\u539?ei ini\u539?iale\f0 .\par
+//cod\f4\fs19\par
+\i\f2 namespace Tema2Console\par
+\{\par
+    internal class Program\par
+    \{\par
+        static void Main(string[] args)\par
+        \{\par
+            Console.WriteLine("Starting Client...");\par
+            IStandardOrderProcessor standardOrderProcessor = new OrderProcessor();\par
+            IDiscountOrderProcessor discountOrderProcessor = new DiscountOrderProcessor();\par
+\par
+            var orderData = "\{ \\"type\\": \\"Room\\", \\"quantity\\": 2, \\"price\\": 250, \\"reservationDate\\": \\"10-05-2024\\" \}";\par
+\par
+            var finalStandardPrice = standardOrderProcessor.ProcessOrder(JsonConvert.DeserializeObject<Order>(orderData));\par
+            var finalDiscountPrice = discountOrderProcessor.ProcessOrder(JsonConvert.DeserializeObject<Order>(orderData));\par
+\par
+            Console.WriteLine($"Final standard price for your order: \{finalStandardPrice\} RON");\par
+            Console.WriteLine($"Final discount price for your order: \{finalDiscountPrice\} RON");\par
+                    \}\par
+    \}\par
+\}\par
+\par
+\i0\f0\fs28\'cen metoda Main, am creat o instan\f1\u539?\'e3 a clasei OrderProcessor \f0 care utilizeaza interfa\f1\u539?a IStandardOrderProcessor, iar pentru clasa DiscountOrderProcessor am utilizat interfa\u539?a IDiscountOrderProcessor. \f0 Astfel,\f1 folos\f0 esc\f1  interfe\u539?e specializate \f0\'een locul interfe\f1\u539?ei ini\u539?iale\f0 , respectand ISP\f2\fs19 .\par
+\par
+\b\f0\fs28 5. Pentru a evidentia Dependency Inversion Principle (DIP): \b0 Deoarece o clasa trebuie sa depinda de abstractizari, si nu de obiectele concrete, acum voi reveni si voi implementa interfe\f1\u539?\f0 a generala\f1  \f0\'een clasele concrete.\par
+Adica =>// \f4 public class OrderProcessor: IOrderProcessor\par
+\f0 si=> //\f4  public class DiscountOrderProcessor: IOrderProcessor\par
+\f0\'cen metoda Main, am creat o instan\f1\u539?\'e3 a clasei OrderProcessor utiliz\f0\'e2nd interfa\f1\u539?a IOrderProcessor. Astfel, Program.cs utilizeaz\'e3 interfa\u539?a \f0 generala\f1 , nu clasa concret\'e3.\par
+Aceste modific\'e3ri respect\'e3 Dependency Inversion Principle (DIP), deoarece modulele de nivel superior (Program.cs) depind acum de abstra\f0 ctizari\f1  (interf\f0 e\f1\u539?e) \u537?i nu de modulele de nivel inferior (clase concrete). \par
+\f0 //cod:\par
+\f4\fs19\par
+\i\f2 namespace Tema2Console\par
+\{\par
+    internal class Program\par
+    \{\par
+        static void Main(string[] args)\par
+        \{\par
+            Console.WriteLine("Starting Client...");\par
+            IOrderProcessor orderProcessor = new OrderProcessor();\par
+\par
+            var orderData = "\{ \\"type\\": \\"Room\\", \\"quantity\\": 2, \\"price\\": 250, \\"reservationDate\\": \\"10-05-2024\\" \}";\par
+\par
+            var finalPrice = orderProcessor.ProcessOrder(JsonConvert.DeserializeObject<Order>(orderData));\par
+\par
+\par
+            Console.WriteLine($"Final price for your order: \{finalPrice\} RON");\par
+\par
+\par
+        \}\par
+    \}\par
+\}\par
+\i0\f4\fs28\par
+\f3\fs19\par
+\par
+\f1\fs28\par
+}
+ 
